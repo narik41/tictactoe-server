@@ -1,0 +1,66 @@
+
+.idea/
+*.iml
+*.iws
+out/
+
+# IntelliJ workspace files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/shelf
+
+.idea/httpRequests
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of go build
+/bin/
+/build/
+/dist/
+/tmp/
+
+# Go coverage
+*.coverprofile
+coverage.out
+
+# Go test binary
+*.test
+
+*.log
+logs/
+*.out
+
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Linux
+*~
+
+.env
+.env.*
+*.local
+*.kubeconfig
+kubeconfig
+.kube/
+docker-compose.override.yml
+*.tar
+
+.vscode/
+
+*.swp
+*.swo
+*.tmp
+*.bak
+coverage/
+reports/
+
