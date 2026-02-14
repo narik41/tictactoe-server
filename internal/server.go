@@ -11,15 +11,21 @@ import (
 )
 
 type Server struct {
-	listener  net.Listener
-	clientMap map[string]*Client
+	listener           net.Listener
+	sessionManager     *SessionManager
+	gameSessionManager *GameSessionManager
+	clientMap          map[string]*Client
+	waitingClient      []*Client
+	sessionMap         map[string]*Session
 	//msgHandler MessageHandler
 }
 
 func NewServer() *Server {
 	return &Server{
-
-		clientMap: make(map[string]*Client),
+		clientMap:      make(map[string]*Client),
+		sessionMap:     make(map[string]*Session),
+		waitingClient:  make([]*Client, 0),
+		sessionManager: NewSessionManager(),
 	}
 }
 
@@ -45,10 +51,11 @@ func (s *Server) Start(addr string) error {
 
 func (s *Server) HandleConnection(conn net.Conn) {
 	log.Printf("Handling connection from %s", conn.RemoteAddr())
-	client := NewClient(conn, s)
-	s.clientMap[client.ClientId] = client
+	client := NewClient(conn)
+	session := s.sessionManager.CreateSession(client)
+	defer s.sessionManager.RemoveSession(session.Id)
 
-	log.Printf("Client connected to %s", client.ClientId)
+	log.Printf("Session %s created for client", session.Id)
 
 	// ask username and password
 	milli := time.Now().UnixMilli()
@@ -75,5 +82,25 @@ func (s *Server) HandleConnection(conn net.Conn) {
 		return
 	}
 
-	go client.ReadLoop()
+	go session.ReadLoop(s.sessionManager)
+}
+
+func (s *Server) processClient(newClient *Client) {
+	log.Printf("Finding opponent for the client %s", newClient)
+
+	// check for waiting list
+	if len(s.waitingClient) > 0 {
+		opponent := s.waitingClient[0]
+		sessionId := "1"
+		gameSession := NewGameSession(sessionId)
+		gameSession.AddPlayer(sessionId, newClient.ClientId, newClient)
+		gameSession.AddPlayer(sessionId, opponent.ClientId, opponent)
+		gameSession.Start()
+		s.waitingClient = s.waitingClient[1:]
+
+		// relay the message to both client that game session is started
+	} else {
+		s.waitingClient = append(s.waitingClient, newClient)
+	}
+
 }

@@ -1,2 +1,4 @@
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/narik41/tictactoe-message v0.1.0 h1:1o2CEJ5r5cEZXBWFkzrJOrlzzEkMofawP+UAiu8eduY=
 github.com/narik41/tictactoe-message v0.1.0/go.mod h1:SLlQqL3oZ3iV86eMBc0ExUeirVowb3BS6066dI6W8gc=
