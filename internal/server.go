@@ -11,15 +11,15 @@ import (
 )
 
 type Server struct {
-	listener   net.Listener
-	clientMap  map[string]*Client
-	msgHandler MessageHandler
+	listener  net.Listener
+	clientMap map[string]*Client
+	//msgHandler MessageHandler
 }
 
-func NewServer(msgHandler MessageHandler) *Server {
+func NewServer() *Server {
 	return &Server{
-		msgHandler: msgHandler,
-		clientMap:  make(map[string]*Client),
+
+		clientMap: make(map[string]*Client),
 	}
 }
 
@@ -45,7 +45,7 @@ func (s *Server) Start(addr string) error {
 
 func (s *Server) HandleConnection(conn net.Conn) {
 	log.Printf("Handling connection from %s", conn.RemoteAddr())
-	client := NewClient(conn, s, s.msgHandler)
+	client := NewClient(conn, s)
 	s.clientMap[client.ClientId] = client
 
 	log.Printf("Client connected to %s", client.ClientId)
@@ -75,4 +75,5 @@ func (s *Server) HandleConnection(conn net.Conn) {
 		return
 	}
 
+	go client.ReadLoop()
 }

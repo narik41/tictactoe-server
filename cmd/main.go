@@ -9,10 +9,10 @@ import (
 func main() {
 	log.Println("!!! Starting the tic tac toe server !!!")
 
-	v1MsgHandler := internal.NewVersion1MsgHandler()
-	msgHandler := internal.NewMessageHandler(v1MsgHandler)
+	//v1MsgHandler := internal.NewVersion1MsgHandler()
+	//msgHandler := internal.NewMessageHandler(v1MsgHandler)
 
-	server := internal.NewServer(msgHandler)
+	server := internal.NewServer()
 	err := server.Start("localhost:9000")
 	if err != nil {
 		log.Fatal(err)
