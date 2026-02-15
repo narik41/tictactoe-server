@@ -43,7 +43,6 @@ func (a LoginHandler) Handle(msg *DecodedMessage, session *Session) (*HandlerRes
 	session.State = LoggedIn
 	session.Username = loginPayload.Username
 	a.queue.Enqueue(session)
-	//a.queue.matchmakingLoop()
 	return &HandlerResponse{
 		MessageType: core.MSG_LOGIN_RESPONSE,
 		Payload: &core.Version1MessageLoginResponse{

@@ -27,6 +27,7 @@ func main() {
 	router := internal.NewMessageRouter()
 	router.RegisterHandler(core.MSG_LOGIN_PAYLOAD, internal.NewLoginHandler(userRepo, gameSessionManager, queue))
 	router.RegisterHandler(core.PLAYER_MOVE, internal.NewPlayerMoveHandler(gameSessionManager))
+	router.RegisterHandler(core.HEARTBEAT, internal.NewHeartbeatHandler())
 
 	server := internal.NewServer(sessionManager, gameSessionManager, router)
 	err := server.Start("localhost:9000")

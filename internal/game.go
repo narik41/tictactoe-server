@@ -114,3 +114,6 @@ func (g *Game) switchTurn() {
 func (g *Game) GetBoard() *Board { return g.board }
 
 func (g *Game) GetCurrentTurn() Symbol { return g.currentTurn }
+
+func (g *Game) IsGameEnd() bool         { return g.status == StatusWon }
+func (g *Game) GetWinnerSymbol() Symbol { return g.winner }

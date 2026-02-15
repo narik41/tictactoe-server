@@ -125,13 +125,9 @@ func (gs *GameSession) Start() error {
 	gs.StartedAt = time.Now()
 	// relay the message
 
-	//gs.PlayerX.client.RelayGameStarted(gs.PlayerX)
-	//gs.PlayerO.client.RelayGameStarted(gs.PlayerO)
-
 	return nil
 }
 
-// MakeMove validates and makes a move for a specific player
 func (gs *GameSession) MakeMove(sessionID string, position int) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
@@ -231,14 +227,12 @@ func (gs *GameSession) GetBothPlayerSessionIDs() []string {
 	return sessionIDs
 }
 
-// IsFull checks if both player slots are filled
 func (gs *GameSession) IsFull() bool {
 	gs.mu.RLock()
 	defer gs.mu.RUnlock()
 	return gs.PlayerX != nil && gs.PlayerO != nil
 }
 
-// HasPlayer checks if a session ID is in this game
 func (gs *GameSession) HasPlayer(sessionID string) bool {
 	gs.mu.RLock()
 	defer gs.mu.RUnlock()

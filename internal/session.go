@@ -16,11 +16,12 @@ const (
 )
 
 type Session struct {
-	Id        string `json:"id"` // Session id
-	Client    *Client
-	State     SessionState // session state
-	Username  string       // user username
-	CreatedAt int64
+	Id           string `json:"id"` // Session id
+	Client       *Client
+	State        SessionState // session state
+	Username     string       // user username
+	CreatedAt    int64
+	LastActivity int64
 }
 
 func (s *Session) ReadLoop(sessionManager *SessionManager, messageRouter *MessageRouter, rw *bufio.ReadWriter) {

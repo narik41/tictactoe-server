@@ -39,6 +39,20 @@ func (a PlayerMoveHandler) Handle(msg *DecodedMessage, session *Session) (*Handl
 		return nil, err
 	}
 
+	if gameSession.Game.IsGameEnd() {
+		return &HandlerResponse{
+			Broadcast: true,
+			Recipients: []string{
+				gameSession.PlayerO.SessionID, gameSession.PlayerX.SessionID,
+			},
+			MessageType: core.GAME_END,
+			Payload: &core.Version1GameEndPayload{
+				Result: "",
+				Winner: string(gameSession.Game.GetWinnerSymbol()),
+			},
+		}, nil
+	}
+
 	return &HandlerResponse{
 		Broadcast: true,
 		Recipients: []string{
