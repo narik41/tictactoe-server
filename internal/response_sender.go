@@ -99,7 +99,7 @@ func (rs *ResponseSender) encodeMessage(messageType core.Version1MessageType, pa
 	}
 
 	msg := core.TicTacToeMessage{
-		MessageId: generateID(),
+		MessageId: UUID("msg"),
 		Version:   "v1",
 		Timestamp: time.Now().UnixMilli(),
 		Payload:   v1Payload,

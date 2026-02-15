@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"fmt"
 	"net"
 	"sync"
-	"time"
 )
 
 type Client struct {
@@ -14,20 +12,20 @@ type Client struct {
 
 func NewClient(conn net.Conn) *Client {
 	return &Client{
-		ClientId: generateID(),
-		Conn:     conn,
+		//ClientId: generateID(),
+		Conn: conn,
 	}
 }
 
 var idCounter int
 var idMu sync.Mutex
 
-func generateID() string {
-	idMu.Lock()
-	defer idMu.Unlock()
-	idCounter++
-	return fmt.Sprintf("%d_%d", time.Now().UnixNano(), idCounter)
-}
+//func generateID() string {
+//	idMu.Lock()
+//	defer idMu.Unlock()
+//	idCounter++
+//	return fmt.Sprintf("%d_%d", time.Now().UnixNano(), idCounter)
+//}
 
 //
 //func (c *Client) ReadLoop() {

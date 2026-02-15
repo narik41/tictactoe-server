@@ -33,8 +33,8 @@ type PlayerInfo struct {
 	Username  string
 	Symbol    Symbol // X or O
 	IsReady   bool
-	client    *Client
-	MyTurn    bool
+	//client    *Client
+	MyTurn bool
 }
 
 func NewGameSession(sessionID string) *GameSession {
@@ -46,7 +46,7 @@ func NewGameSession(sessionID string) *GameSession {
 	}
 }
 
-func (gs *GameSession) AddPlayer(sessionID, username string, client *Client) error {
+func (gs *GameSession) AddPlayer(sessionID, username string) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
@@ -60,8 +60,8 @@ func (gs *GameSession) AddPlayer(sessionID, username string, client *Client) err
 			Username:  username,
 			Symbol:    SymbolX,
 			IsReady:   false,
-			client:    client,
-			MyTurn:    false,
+			//client:    client,
+			MyTurn: false,
 		}
 	} else if gs.PlayerO == nil {
 		gs.PlayerO = &PlayerInfo{
@@ -70,7 +70,7 @@ func (gs *GameSession) AddPlayer(sessionID, username string, client *Client) err
 			Symbol:    SymbolO,
 			IsReady:   false,
 			MyTurn:    true,
-			client:    client,
+			//client:    client,
 		}
 	}
 
@@ -132,7 +132,7 @@ func (gs *GameSession) Start() error {
 }
 
 // MakeMove validates and makes a move for a specific player
-func (gs *GameSession) MakeMove(sessionID string, row, col int) error {
+func (gs *GameSession) MakeMove(sessionID string, position int) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
@@ -145,22 +145,20 @@ func (gs *GameSession) MakeMove(sessionID string, row, col int) error {
 		return err
 	}
 
-	if err := gs.Game.MakeMove(row, col, playerSymbol); err != nil {
+	if err := gs.Game.MakeMove(position, playerSymbol); err != nil {
 		return err
 	}
-	//
-	//if gs.Game.IsGameOver() {
-	//	gs.Status = SessionCompleted
-	//	gs.EndedAt = time.Now()
-	//}
+
+	if gs.Game.IsGameOver() {
+		gs.Status = SessionCompleted
+		gs.EndedAt = time.Now()
+	}
 
 	return nil
 }
 
-func (gs *GameSession) MakeMoveByIndex(sessionID string, index int) error {
-	//row, col := IndexToPosition(index)
-	//return gs.MakeMove(sessionID, row, col)
-	return nil
+func (g *Game) IsGameOver() bool {
+	return g.status == StatusWon || g.status == StatusDraw
 }
 
 func (gs *GameSession) getPlayerSymbol(sessionID string) (Symbol, error) {

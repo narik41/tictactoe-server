@@ -5,11 +5,6 @@ import (
 	"sync"
 )
 
-type GameSessionManager struct {
-	sessions        map[string]*GameSession
-	playerToSession map[string]string
-}
-
 type SessionManager struct {
 	sessions   map[string]*Session // sessionId -> Session
 	byUsername map[string]*Session // username -> Session
@@ -28,7 +23,7 @@ func (sm *SessionManager) CreateSession(client *Client) *Session {
 	defer sm.mu.Unlock()
 
 	session := &Session{
-		Id:        UUID("sess"),
+		Id:        UUID("player"),
 		Client:    client,
 		State:     Guest,
 		CreatedAt: GetNPTToUtcInMillisecond(),

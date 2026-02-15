@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/narik41/tictactoe-message/core"
-	"github.com/narik41/tictactoe-server/internal/repo"
 )
 
 type MessageRouter struct {
@@ -27,12 +26,6 @@ func NewMessageRouter() *MessageRouter {
 	router := &MessageRouter{
 		handlers: make(map[core.Version1MessageType]MessageHandler),
 	}
-
-	// Register handlers
-	userRepo := repo.NewUserRepo()
-	router.RegisterHandler(core.MSG_LOGIN_PAYLOAD, NewAuthService(userRepo))
-	//router.RegisterHandler("PLAYER_MOVE", NewPlayerMoveHandler(deps))
-	//router.RegisterHandler("HEARTBEAT", NewHeartbeatHandler())
 
 	return router
 }

@@ -12,18 +12,18 @@ import (
 )
 
 type MessageDecoder struct {
-	reader *bufio.Reader
+	rw *bufio.ReadWriter
 }
 
-func NewMessageDecoder(conn io.Reader) *MessageDecoder {
+func NewMessageDecoder(rw *bufio.ReadWriter) *MessageDecoder {
 	return &MessageDecoder{
-		reader: bufio.NewReader(conn),
+		rw: rw,
 	}
 }
 
 func (d *MessageDecoder) Decode() (*DecodedMessage, error) {
 	// Step 1: Read line until newline
-	line, err := d.reader.ReadBytes('\n')
+	line, err := d.rw.Reader.ReadBytes('\n')
 	if err != nil {
 		if err == io.EOF {
 			return nil, io.EOF

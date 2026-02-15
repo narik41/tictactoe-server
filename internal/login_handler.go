@@ -9,17 +9,21 @@ import (
 	"github.com/narik41/tictactoe-server/internal/repo"
 )
 
-type AuthService struct {
-	userRepo repo.UserRepo
+type LoginHandler struct {
+	userRepo       repo.UserRepo
+	sessionManager *GameSessionManager
+	queue          *SessionQueue
 }
 
-func NewAuthService(userRepo repo.UserRepo) AuthService {
-	return AuthService{
-		userRepo: userRepo,
+func NewLoginHandler(userRepo repo.UserRepo, sessionManager *GameSessionManager, queue *SessionQueue) LoginHandler {
+	return LoginHandler{
+		userRepo:       userRepo,
+		sessionManager: sessionManager,
+		queue:          queue,
 	}
 }
 
-func (a AuthService) Handle(msg *DecodedMessage, session *Session) (*HandlerResponse, error) {
+func (a LoginHandler) Handle(msg *DecodedMessage, session *Session) (*HandlerResponse, error) {
 	log.Println("Handling the auth request.")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {
@@ -37,6 +41,9 @@ func (a AuthService) Handle(msg *DecodedMessage, session *Session) (*HandlerResp
 		return nil, fmt.Errorf("user not found")
 	}
 	session.State = LoggedIn
+	session.Username = loginPayload.Username
+	a.queue.Enqueue(session)
+	//a.queue.matchmakingLoop()
 	return &HandlerResponse{
 		MessageType: core.MSG_LOGIN_RESPONSE,
 		Payload: &core.Version1MessageLoginResponse{
@@ -48,7 +55,7 @@ func (a AuthService) Handle(msg *DecodedMessage, session *Session) (*HandlerResp
 	}, nil
 }
 
-func (a AuthService) RequiredStates() []SessionState {
+func (a LoginHandler) RequiredStates() []SessionState {
 	return []SessionState{
 		Guest,
 	}
