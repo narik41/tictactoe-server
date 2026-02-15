@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/narik41/tictactoe-message/core"
+	"github.com/narik41/tictactoe-helper/core"
 )
 
 type ResponseSender struct {

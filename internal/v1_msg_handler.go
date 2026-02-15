@@ -3,7 +3,7 @@ package internal
 import (
 	"errors"
 
-	"github.com/narik41/tictactoe-message/core"
+	"github.com/narik41/tictactoe-helper/core"
 )
 
 type Version1MsgHandler struct{}
