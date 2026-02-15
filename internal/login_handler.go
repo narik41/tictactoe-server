@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/narik41/tictactoe-message/core"
+	"github.com/narik41/tictactoe-helper/core"
 	"github.com/narik41/tictactoe-server/internal/repo"
 )
 

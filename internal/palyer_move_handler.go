@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/narik41/tictactoe-message/core"
+	"github.com/narik41/tictactoe-helper/core"
 )
 
 type PlayerMoveHandler struct {
