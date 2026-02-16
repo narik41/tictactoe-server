@@ -1,4 +1,4 @@
-package internal
+package decoder
 
 import (
 	"bufio"
@@ -61,15 +61,15 @@ func (d *MessageDecoder) Decode() (*DecodedMessage, error) {
 	}
 
 	// Step 5: Validate required fields
-	//if msg.MessageId == "" {
-	//	return nil, fmt.Errorf("message_id is required")
-	//}
-	//if msg.Version == "" {
-	//	return nil, fmt.Errorf("version is required")
-	//}
-	//if msg.Timestamp == 0 {
-	//	return nil, fmt.Errorf("timestamp is required")
-	//}
+	if msg.MessageId == "" {
+		return nil, fmt.Errorf("message_id is required")
+	}
+	if msg.Version == "" {
+		return nil, fmt.Errorf("version is required")
+	}
+	if msg.Timestamp == 0 {
+		return nil, fmt.Errorf("timestamp is required")
+	}
 
 	// Step 6: Extract version-specific payload
 	var messageType core.Version1MessageType
@@ -98,21 +98,18 @@ func (d *MessageDecoder) Decode() (*DecodedMessage, error) {
 	}, nil
 }
 
-// decodeV1Payload decodes version 1 payload
 func (d *MessageDecoder) decodeV1Payload(payload interface{}) (*core.Version1MessagePayload, error) {
-	// Convert to JSON bytes
+
 	jsonBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	// Unmarshal to v1 payload structure
 	var v1Payload core.Version1MessagePayload
 	if err := json.Unmarshal(jsonBytes, &v1Payload); err != nil {
 		return nil, err
 	}
 
-	// Validate message type
 	if v1Payload.MessageType == "" {
 		return nil, fmt.Errorf("message_type is required")
 	}
@@ -120,11 +117,10 @@ func (d *MessageDecoder) decodeV1Payload(payload interface{}) (*core.Version1Mes
 	return &v1Payload, nil
 }
 
-// DecodedMessage represents a fully decoded message
 type DecodedMessage struct {
 	MessageId   string
 	Version     string
-	MessageType core.Version1MessageType // e.g., "LOGIN_REQUEST", "PLAYER_MOVE"
-	Payload     interface{}              // Type-specific payload data
+	MessageType core.Version1MessageType
+	Payload     interface{}
 	Timestamp   int64
 }

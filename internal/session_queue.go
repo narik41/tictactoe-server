@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/game"
 )
 
 type SessionQueue struct {
 	queue              []*Session
 	gameSessionManager *GameSessionManager
 	sender             *ResponseSender
-	//mu                 sync.Mutex
-	running bool
+	running            bool
 }
 
 func NewSessionQueue(gameSessionManager *GameSessionManager, sender *ResponseSender) *SessionQueue {
@@ -27,20 +27,16 @@ func NewSessionQueue(gameSessionManager *GameSessionManager, sender *ResponseSen
 }
 
 func (mq *SessionQueue) Start() {
-	//mq.mu.Lock()
 	if mq.running {
 		//mq.mu.Unlock()
 		return
 	}
 	mq.running = true
-	//mq.mu.Unlock()
 
 	go mq.matchmakingLoop()
 }
 
 func (mq *SessionQueue) Enqueue(session *Session) error {
-	//mq.mu.Lock()
-	//defer mq.mu.Unlock()
 
 	for _, s := range mq.queue {
 		if s.Id == session.Id {
@@ -54,7 +50,6 @@ func (mq *SessionQueue) Enqueue(session *Session) error {
 	log.Printf("Session %s (%s) added to session queue. Queue size: %d",
 		session.Id, session.Username, len(mq.queue))
 
-	// Send waiting message to player
 	mq.sender.Send(session, &HandlerResponse{
 		MessageType: core.WAITING_FOR_OPPONENT,
 		Payload: map[string]interface{}{
@@ -66,8 +61,6 @@ func (mq *SessionQueue) Enqueue(session *Session) error {
 }
 
 func (mq *SessionQueue) Dequeue() *Session {
-	//mq.mu.Lock()
-	//defer mq.mu.Unlock()
 
 	if len(mq.queue) == 0 {
 		return nil
@@ -79,8 +72,6 @@ func (mq *SessionQueue) Dequeue() *Session {
 }
 
 func (mq *SessionQueue) Remove(sessionID string) error {
-	//mq.mu.Lock()
-	//defer mq.mu.Unlock()
 
 	for i, session := range mq.queue {
 		if session.Id == sessionID {
@@ -101,14 +92,13 @@ func (mq *SessionQueue) matchmakingLoop() {
 	log.Println("Session queue loop started")
 
 	for {
-		//mq.mu.Lock()
+
 		if !mq.running {
-			//mq.mu.Unlock()
+
 			break
 		}
 
 		queueSize := len(mq.queue)
-		//mq.mu.Unlock()
 
 		if queueSize >= 2 {
 			mq.createMatch()
@@ -178,7 +168,7 @@ func (mq *SessionQueue) createMatch() {
 	mq.notifyGameStart(player1, player2, gameSession)
 }
 
-func (mq *SessionQueue) notifyGameStart(player1, player2 *Session, gameSession *GameSession) {
+func (mq *SessionQueue) notifyGameStart(player1, player2 *Session, gameSession *game.GameSession) {
 
 	playerXInfo, _ := gameSession.GetPlayerInfo(player1.Id)
 	playerOInfo, _ := gameSession.GetPlayerInfo(player2.Id)

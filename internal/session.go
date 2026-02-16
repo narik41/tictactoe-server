@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"io"
 	"log"
+
+	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/decoder"
 )
 
 type SessionState string
@@ -16,10 +19,10 @@ const (
 )
 
 type Session struct {
-	Id           string `json:"id"` // Session id
+	Id           string `json:"id"`
 	Client       *Client
-	State        SessionState // session state
-	Username     string       // user username
+	State        SessionState
+	Username     string
 	CreatedAt    int64
 	LastActivity int64
 }
@@ -31,32 +34,39 @@ func (s *Session) ReadLoop(sessionManager *SessionManager, messageRouter *Messag
 		}
 		log.Printf("ReadLoop exited for session %s", s.Id)
 	}()
-	decoder := NewMessageDecoder(rw)
-	sender := NewResponseSender(sessionManager)
+	msgDecoder := decoder.NewMessageDecoder(rw)
+	msgSender := NewResponseSender(sessionManager)
 	for {
 		log.Printf("Reading a message of client %s", s.Id)
-		decodedMsg, err2 := decoder.Decode()
+		decodedMsg, err2 := msgDecoder.Decode()
 		if err2 != nil {
 			if err2 == io.EOF {
 				log.Printf("Session %s disconnected", s.Id)
 				return
 			}
 			log.Printf("Decode error for session %s: %v", s.Id, err2)
-			sender.SendError(s, "DECODE_ERROR", err2.Error())
+			msgSender.SendError(s, "DECODE_ERROR", err2.Error())
 			continue
 		}
 		log.Printf("Session %s received %s", s.Id, decodedMsg.MessageType)
 
 		response, err2 := messageRouter.Route(decodedMsg, s)
 		if err2 != nil {
-			sender.SendError(s, "HANDLER_ERROR", err2.Error())
+			msgSender.SendError(s, "HANDLER_ERROR", err2.Error())
 			continue
 		}
 
+		// based on response update the session state
+		if response != nil {
+			if response.MessageType == core.MSG_LOGIN_RESPONSE {
+				s.State = LoggedIn
+			}
+		}
+
 		if response.Broadcast {
-			sender.Broadcast(response.Recipients, response)
+			msgSender.Broadcast(response.Recipients, response)
 		} else {
-			sender.Send(s, response)
+			msgSender.Send(s, response)
 		}
 
 	}

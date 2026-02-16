@@ -1,20 +1,19 @@
 package internal
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/narik41/tictactoe-helper/core"
 )
 
 type SessionManager struct {
-	sessions   map[string]*Session // sessionId -> Session
-	byUsername map[string]*Session // username -> Session
-	mu         sync.RWMutex
+	sessions map[string]*Session // sessionId -> Session
+	mu       sync.RWMutex
 }
 
 func NewSessionManager() *SessionManager {
 	return &SessionManager{
-		sessions:   make(map[string]*Session),
-		byUsername: make(map[string]*Session),
+		sessions: make(map[string]*Session),
 	}
 }
 
@@ -23,10 +22,10 @@ func (sm *SessionManager) CreateSession(client *Client) *Session {
 	defer sm.mu.Unlock()
 
 	session := &Session{
-		Id:        UUID("player"),
+		Id:        core.UUID("player"),
 		Client:    client,
 		State:     Guest,
-		CreatedAt: GetNPTToUtcInMillisecond(),
+		CreatedAt: core.GetNPTToUtcInMillisecond(),
 	}
 
 	sm.sessions[session.Id] = session
@@ -39,59 +38,4 @@ func (sm *SessionManager) GetSession(sessionID string) (*Session, bool) {
 
 	session, exists := sm.sessions[sessionID]
 	return session, exists
-}
-
-func (sm *SessionManager) GetSessionByUsername(username string) (*Session, bool) {
-	sm.mu.RLock()
-	defer sm.mu.RUnlock()
-
-	session, exists := sm.byUsername[username]
-	return session, exists
-}
-
-func (sm *SessionManager) RegisterUsername(sessionID, username string) error {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
-	session, exists := sm.sessions[sessionID]
-	if !exists {
-		return fmt.Errorf("session not found")
-	}
-
-	// Check if username already taken
-	if _, taken := sm.byUsername[username]; taken {
-		return fmt.Errorf("username already in use")
-	}
-
-	session.Username = username
-	sm.byUsername[username] = session
-
-	return nil
-}
-
-func (sm *SessionManager) RemoveSession(sessionID string) {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
-	session, exists := sm.sessions[sessionID]
-	if !exists {
-		return
-	}
-
-	if session.Username != "" {
-		delete(sm.byUsername, session.Username)
-	}
-
-	delete(sm.sessions, sessionID)
-}
-
-func (sm *SessionManager) GetAllSessions() []*Session {
-	sm.mu.RLock()
-	defer sm.mu.RUnlock()
-
-	sessions := make([]*Session, 0, len(sm.sessions))
-	for _, session := range sm.sessions {
-		sessions = append(sessions, session)
-	}
-	return sessions
 }

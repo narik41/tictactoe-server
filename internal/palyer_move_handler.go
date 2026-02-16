@@ -5,19 +5,20 @@ import (
 	"log"
 
 	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/decoder"
 )
 
 type PlayerMoveHandler struct {
-	sessionManager *GameSessionManager
+	gameSessionManager *GameSessionManager
 }
 
-func NewPlayerMoveHandler(sessionManager *GameSessionManager) PlayerMoveHandler {
+func NewPlayerMoveHandler(gameSessionManager *GameSessionManager) PlayerMoveHandler {
 	return PlayerMoveHandler{
-		sessionManager: sessionManager,
+		gameSessionManager: gameSessionManager,
 	}
 }
 
-func (a PlayerMoveHandler) Handle(msg *DecodedMessage, session *Session) (*HandlerResponse, error) {
+func (a PlayerMoveHandler) Handle(msg *decoder.DecodedMessage, sessionId string) (*HandlerResponse, error) {
 	log.Println("PlayerMoveHandler.Handle")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {
@@ -29,12 +30,12 @@ func (a PlayerMoveHandler) Handle(msg *DecodedMessage, session *Session) (*Handl
 		return nil, err
 	}
 
-	gameSession, err := a.sessionManager.GetSessionByPlayer(session.Id)
+	gameSession, err := a.gameSessionManager.GetSessionByPlayer(sessionId)
 	if err != nil {
 		return nil, err
 	}
 
-	err = gameSession.MakeMove(session.Id, loginPayload.Position)
+	err = gameSession.MakeMove(sessionId, loginPayload.Position)
 	if err != nil {
 		return nil, err
 	}
