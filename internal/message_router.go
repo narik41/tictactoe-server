@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/decoder"
 )
 
 type MessageRouter struct {
@@ -14,12 +15,12 @@ type HandlerResponse struct {
 	MessageType core.Version1MessageType
 	Payload     interface{}
 	Broadcast   bool
-	Recipients  []string // Session IDs to broadcast to
+	Recipients  []string
 }
 
 type MessageHandler interface {
-	Handle(msg *DecodedMessage, session *Session) (*HandlerResponse, error)
-	RequiredStates() []SessionState // nil = any state allowed
+	Handle(msg *decoder.DecodedMessage, sessionId string) (*HandlerResponse, error)
+	RequiredStates() []SessionState
 }
 
 func NewMessageRouter() *MessageRouter {
@@ -34,7 +35,7 @@ func (r *MessageRouter) RegisterHandler(msgType core.Version1MessageType, handle
 	r.handlers[msgType] = handler
 }
 
-func (r *MessageRouter) Route(msg *DecodedMessage, session *Session) (*HandlerResponse, error) {
+func (r *MessageRouter) Route(msg *decoder.DecodedMessage, session *Session) (*HandlerResponse, error) {
 	// Step 1: Get handler
 	handler, exists := r.handlers[msg.MessageType]
 	if !exists {
@@ -47,8 +48,8 @@ func (r *MessageRouter) Route(msg *DecodedMessage, session *Session) (*HandlerRe
 	}
 
 	// Step 3: Call handler
-	log.Printf("Routing %s for session %s", msg.MessageType, session.Id)
-	response, err := handler.Handle(msg, session)
+	log.Printf("Routing %s for session %s", msg.MessageType, session)
+	response, err := handler.Handle(msg, session.Id)
 	if err != nil {
 		return nil, fmt.Errorf("handler failed: %w", err)
 	}
@@ -56,7 +57,6 @@ func (r *MessageRouter) Route(msg *DecodedMessage, session *Session) (*HandlerRe
 	return response, nil
 }
 
-// validateSessionState checks if session state allows this message
 func (r *MessageRouter) validateSessionState(handler MessageHandler, session *Session) error {
 	requiredStates := handler.RequiredStates()
 	if requiredStates == nil {
@@ -70,11 +70,4 @@ func (r *MessageRouter) validateSessionState(handler MessageHandler, session *Se
 	}
 
 	return fmt.Errorf("invalid session state: %s not allowed for this operation", session.State)
-}
-
-type Dependencies struct {
-	//AuthService        *AuthService
-	//MatchmakingQueue   *MatchmakingQueue
-	GameSessionManager *GameSessionManager
-	//SessionManager     *SessionManager
 }

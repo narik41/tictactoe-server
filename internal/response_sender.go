@@ -90,7 +90,6 @@ func (rs *ResponseSender) SendError(session *Session, errorCode, errorMessage st
 	return nil
 }
 
-// encodeMessage encodes a message to JSON bytes
 func (rs *ResponseSender) encodeMessage(messageType core.Version1MessageType, payload interface{}) ([]byte, error) {
 
 	v1Payload := &core.Version1MessagePayload{
@@ -99,7 +98,7 @@ func (rs *ResponseSender) encodeMessage(messageType core.Version1MessageType, pa
 	}
 
 	msg := core.TicTacToeMessage{
-		MessageId: UUID("msg"),
+		MessageId: core.UUID("msg"),
 		Version:   "v1",
 		Timestamp: time.Now().UnixMilli(),
 		Payload:   v1Payload,

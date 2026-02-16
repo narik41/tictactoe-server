@@ -6,31 +6,31 @@ import (
 	"log"
 
 	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/decoder"
 	"github.com/narik41/tictactoe-server/internal/repo"
 )
 
 type LoginHandler struct {
 	userRepo       repo.UserRepo
-	sessionManager *GameSessionManager
 	queue          *SessionQueue
+	sessionManager *SessionManager
 }
 
-func NewLoginHandler(userRepo repo.UserRepo, sessionManager *GameSessionManager, queue *SessionQueue) LoginHandler {
+func NewLoginHandler(userRepo repo.UserRepo, queue *SessionQueue, sessionManager *SessionManager) LoginHandler {
 	return LoginHandler{
 		userRepo:       userRepo,
-		sessionManager: sessionManager,
 		queue:          queue,
+		sessionManager: sessionManager,
 	}
 }
 
-func (a LoginHandler) Handle(msg *DecodedMessage, session *Session) (*HandlerResponse, error) {
+func (a LoginHandler) Handle(msg *decoder.DecodedMessage, sessionId string) (*HandlerResponse, error) {
 	log.Println("Handling the auth request.")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {
 		return nil, err
 	}
 
-	// Unmarshal to v1 payload structure
 	var loginPayload core.Version1MessageLoginPayload
 	if err := json.Unmarshal(jsonBytes, &loginPayload); err != nil {
 		return nil, err
@@ -40,9 +40,11 @@ func (a LoginHandler) Handle(msg *DecodedMessage, session *Session) (*HandlerRes
 	if !isExists {
 		return nil, fmt.Errorf("user not found")
 	}
-	session.State = LoggedIn
-	session.Username = loginPayload.Username
-	a.queue.Enqueue(session)
+
+	clientSession, _ := a.sessionManager.GetSession(sessionId)
+
+	// add session to queue
+	a.queue.Enqueue(clientSession)
 	return &HandlerResponse{
 		MessageType: core.MSG_LOGIN_RESPONSE,
 		Payload: &core.Version1MessageLoginResponse{

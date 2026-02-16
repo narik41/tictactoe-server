@@ -5,34 +5,37 @@ import (
 	"log"
 	"sync"
 	"time"
+
+	"github.com/narik41/tictactoe-helper/core"
+	"github.com/narik41/tictactoe-server/internal/game"
 )
 
 type GameSessionManager struct {
-	sessions        map[string]*GameSession // gameID -> GameSession
-	playerToSession map[string]string       // playerSessionID -> gameID
+	sessions        map[string]*game.GameSession // gameID -> GameSession
+	playerToSession map[string]string            // playerSessionID -> gameID
 	mu              sync.RWMutex
 }
 
 func NewGameSessionManager() *GameSessionManager {
 	return &GameSessionManager{
-		sessions:        make(map[string]*GameSession),
+		sessions:        make(map[string]*game.GameSession),
 		playerToSession: make(map[string]string),
 	}
 }
 
-func (gsm *GameSessionManager) CreateSession() *GameSession {
+func (gsm *GameSessionManager) CreateSession() *game.GameSession {
 	gsm.mu.Lock()
 	defer gsm.mu.Unlock()
 
-	gameID := UUID("game")
-	session := NewGameSession(gameID)
+	gameID := core.UUID("game")
+	session := game.NewGameSession(gameID)
 	gsm.sessions[gameID] = session
 
 	log.Printf("Created game session: %s", gameID)
 	return session
 }
 
-func (gsm *GameSessionManager) GetSession(gameID string) (*GameSession, error) {
+func (gsm *GameSessionManager) GetSession(gameID string) (*game.GameSession, error) {
 	gsm.mu.RLock()
 	defer gsm.mu.RUnlock()
 
@@ -43,7 +46,7 @@ func (gsm *GameSessionManager) GetSession(gameID string) (*GameSession, error) {
 	return session, nil
 }
 
-func (gsm *GameSessionManager) GetSessionByPlayer(playerSessionID string) (*GameSession, error) {
+func (gsm *GameSessionManager) GetSessionByPlayer(playerSessionID string) (*game.GameSession, error) {
 	gsm.mu.RLock()
 	defer gsm.mu.RUnlock()
 
@@ -82,7 +85,6 @@ func (gsm *GameSessionManager) AddPlayerToSession(gameID, playerSessionID, usern
 	return nil
 }
 
-// RemovePlayerFromSession removes a player from their game session
 func (gsm *GameSessionManager) RemovePlayerFromSession(playerSessionID string) error {
 	gsm.mu.Lock()
 	defer gsm.mu.Unlock()
@@ -108,14 +110,13 @@ func (gsm *GameSessionManager) RemovePlayerFromSession(playerSessionID string) e
 	log.Printf("Removed player %s from game %s", playerSessionID, gameID)
 
 	// Clean up if game is abandoned or empty
-	if session.Status == SessionAbandoned || !session.IsFull() {
+	if session.Status == game.SessionAbandoned || !session.IsFull() {
 		gsm.removeSession(gameID)
 	}
 
 	return nil
 }
 
-// RemoveSession removes a game session
 func (gsm *GameSessionManager) RemoveSession(gameID string) error {
 	gsm.mu.Lock()
 	defer gsm.mu.Unlock()
@@ -123,7 +124,6 @@ func (gsm *GameSessionManager) RemoveSession(gameID string) error {
 	return gsm.removeSession(gameID)
 }
 
-// removeSession removes a session (internal, no lock)
 func (gsm *GameSessionManager) removeSession(gameID string) error {
 	session, exists := gsm.sessions[gameID]
 	if !exists {
@@ -145,26 +145,23 @@ func (gsm *GameSessionManager) removeSession(gameID string) error {
 	return nil
 }
 
-// GetAllActiveSessions returns all active game sessions
-func (gsm *GameSessionManager) GetAllActiveSessions() []*GameSession {
+func (gsm *GameSessionManager) GetAllActiveSessions() []*game.GameSession {
 	gsm.mu.RLock()
 	defer gsm.mu.RUnlock()
 
-	sessions := make([]*GameSession, 0, len(gsm.sessions))
+	sessions := make([]*game.GameSession, 0, len(gsm.sessions))
 	for _, session := range gsm.sessions {
 		sessions = append(sessions, session)
 	}
 	return sessions
 }
 
-// GetSessionCount returns the number of active game sessions
 func (gsm *GameSessionManager) GetSessionCount() int {
 	gsm.mu.RLock()
 	defer gsm.mu.RUnlock()
 	return len(gsm.sessions)
 }
 
-// IsPlayerInGame checks if a player is currently in a game
 func (gsm *GameSessionManager) IsPlayerInGame(playerSessionID string) bool {
 	gsm.mu.RLock()
 	defer gsm.mu.RUnlock()
@@ -173,7 +170,6 @@ func (gsm *GameSessionManager) IsPlayerInGame(playerSessionID string) bool {
 	return exists
 }
 
-// CleanupCompletedGames removes completed or old games
 func (gsm *GameSessionManager) CleanupCompletedGames(maxAge time.Duration) int {
 	gsm.mu.Lock()
 	defer gsm.mu.Unlock()
@@ -184,22 +180,18 @@ func (gsm *GameSessionManager) CleanupCompletedGames(maxAge time.Duration) int {
 	for gameID, session := range gsm.sessions {
 		shouldRemove := false
 
-		// Remove completed games
-		if session.Status == SessionCompleted {
-			// Keep for a short time for players to see results
+		if session.Status == game.SessionCompleted {
 			if !session.EndedAt.IsZero() && now.Sub(session.EndedAt) > 5*time.Minute {
 				shouldRemove = true
 			}
 		}
 
-		// Remove abandoned games
-		if session.Status == SessionAbandoned {
+		if session.Status == game.SessionAbandoned {
 			if !session.EndedAt.IsZero() && now.Sub(session.EndedAt) > 1*time.Minute {
 				shouldRemove = true
 			}
 		}
 
-		// Remove old games
 		if now.Sub(session.CreatedAt) > maxAge {
 			shouldRemove = true
 		}

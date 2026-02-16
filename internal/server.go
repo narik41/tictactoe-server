@@ -49,7 +49,6 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	log.Printf("Handling connection from %s", conn.RemoteAddr())
 	client := NewClient(conn)
 	session := s.sessionManager.CreateSession(client)
-	//defer s.sessionManager.RemoveSession(session.Id)
 
 	log.Printf("Session %s created for client", session.Id)
 
@@ -60,7 +59,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	}
 
 	ticTacToeMsg := core.TicTacToeMessage{
-		MessageId: UUID("msg"),
+		MessageId: core.UUID("msg"),
 		Version:   "v1",
 		Timestamp: milli,
 		Payload:   loginReqPayload,

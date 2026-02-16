@@ -1,4 +1,4 @@
-package internal
+package game
 
 import (
 	"fmt"
@@ -33,8 +33,7 @@ type PlayerInfo struct {
 	Username  string
 	Symbol    Symbol // X or O
 	IsReady   bool
-	//client    *Client
-	MyTurn bool
+	MyTurn    bool
 }
 
 func NewGameSession(sessionID string) *GameSession {
@@ -60,8 +59,7 @@ func (gs *GameSession) AddPlayer(sessionID, username string) error {
 			Username:  username,
 			Symbol:    SymbolX,
 			IsReady:   false,
-			//client:    client,
-			MyTurn: false,
+			MyTurn:    false,
 		}
 	} else if gs.PlayerO == nil {
 		gs.PlayerO = &PlayerInfo{
@@ -70,7 +68,6 @@ func (gs *GameSession) AddPlayer(sessionID, username string) error {
 			Symbol:    SymbolO,
 			IsReady:   false,
 			MyTurn:    true,
-			//client:    client,
 		}
 	}
 
@@ -145,16 +142,12 @@ func (gs *GameSession) MakeMove(sessionID string, position int) error {
 		return err
 	}
 
-	if gs.Game.IsGameOver() {
+	if gs.Game.IsGameEnd() {
 		gs.Status = SessionCompleted
 		gs.EndedAt = time.Now()
 	}
 
 	return nil
-}
-
-func (g *Game) IsGameOver() bool {
-	return g.status == StatusWon || g.status == StatusDraw
 }
 
 func (gs *GameSession) getPlayerSymbol(sessionID string) (Symbol, error) {
@@ -209,10 +202,8 @@ func (gs *GameSession) IsPlayerTurn(sessionID string) bool {
 		return false
 	}
 	return false
-	//return gs.Game.GetCurrentTurn() == playerSymbol
 }
 
-// GetBothPlayerSessionIDs returns both player session IDs
 func (gs *GameSession) GetBothPlayerSessionIDs() []string {
 	gs.mu.RLock()
 	defer gs.mu.RUnlock()
